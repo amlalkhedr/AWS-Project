@@ -47,7 +47,7 @@ This project demonstrates the deployment of a scalable and highly available web 
 3. NAT Gateways deployed in each AZ for Private Subnets
 4. EC2 Instances deployed using Launch Template
 5. RDS (MySQL) deployed in Multi-AZ mode
-6. IAM roles created for EC2 to access S3 / CloudWatch
+6. IAM roles created for EC2 to access CloudWatch
 7. CloudWatch Alarms + SNS notifications set up for CPU usage and health checks
 
 ---
