@@ -1,77 +1,89 @@
 ## 📌 Project Title
-**Scalable Web Application with ALB and Auto Scaling – AWS Deployment**
+**Secure & Scalable Web Application with ALB and Auto Scaling on AWS**
 
 ---
 
 ## 🧠 Project Description
 
-This project demonstrates the deployment of a scalable and highly available web application on AWS using EC2 instances, an Application Load Balancer (ALB), and Auto Scaling Groups (ASG). It follows AWS best practices for compute scalability, security, and cost optimization. The backend layer is supported by Amazon RDS in a Multi-AZ configuration.
+This project showcases the deployment of a secure, scalable, and highly available web application on AWS. The architecture is optimized for performance and security by placing the front-end and back-end resources in separate private subnets, with only the Application Load Balancer and NAT Gateway residing in the public subnet. Amazon RDS (MySQL) is used for persistent data storage in a Multi-AZ deployment. Monitoring and alerting are handled through CloudWatch and SNS.
 
 ---
 
-## 🏗️ Solution Architecture
+## 🏗️  Solution Architecture
 
-![Diagram](https://github.com/user-attachments/assets/73a16538-51fc-4cdb-9162-f63ce83e586a)
+### 🔁 Subnet Allocation
 
+| Component                         | Subnet Type | Description                                                              |
+|----------------------------------|-------------|--------------------------------------------------------------------------|
+| **Application Load Balancer**    | Public      | Distributes traffic to private front-end EC2 instances                   |
+| **NAT Gateway**                  | Public      | Provides outbound internet access for private subnet resources           |
+| **Front-end EC2 Instances**      | Private     | Hosts the web application’s UI components                                |
+| **Back-end EC2 Instances**       | Private     | Executes server-side application logic                                   |
+| **Amazon RDS (MySQL)**           | Private     | Managed relational database deployed in Multi-AZ configuration           |
 
-### 🧱 Key Components
+### 📍 Network Configuration
 
-| Component              | Description                                                                 |
-|------------------------|-----------------------------------------------------------------------------|
-| **EC2 (Auto Scaling)** | Hosts the web application, deployed across two AZs using an ASG             |
-| **ALB**                | Distributes HTTP traffic across EC2 instances                               |
-| **Internet Gateway**   | Enables access from the internet to ALB and EC2 (Public Subnets)            |
-| **NAT Gateways**       | Two NAT Gateways (one per AZ) to allow outbound access from Private Subnets |
-| **RDS (MySQL)**        | Multi-AZ relational DB deployed in Private Subnets                          |
-| **CloudWatch**         | Collects logs and metrics from EC2 and ALB                                  |
-| **SNS**                | Sends notifications based on CloudWatch alarms                              |
+- **Region**: `eu-north-1 (Stockholm)`
+- **VPC CIDR**: `10.10.0.0/16`
+
+| Subnet Type | CIDR Range        | Availability Zone     |
+|-------------|-------------------|------------------------|
+| Public      | 10.10.1.0/24      | eu-north-1a            |
+| Private FE  | 10.10.101.0/24    | eu-north-1a            |
+| Private BE  | 10.10.102.0/24    | eu-north-1b            |
 
 ---
 
-## 🔐 Security Groups
+## 🔐 Security Enhancements
 
-### EC2 Security Group:
-- Allows inbound HTTP (Port 80) from ALB
-- Allows SSH (Port 22) only from trusted IPs
-- Outbound: All traffic allowed
+### Security Groups
 
-### RDS Security Group:
-- Allows MySQL (Port 3306) access only from EC2 Security Group
+- **ALB SG**: Allows HTTP (80) from the internet
+- **Front-End EC2 SG**: Accepts HTTP from ALB only
+- **Back-End EC2 SG**: Accepts traffic from Front-End EC2 SG on custom ports (e.g., 8080)
+- **RDS SG**: Accepts MySQL (3306) only from Back-End EC2 SG
+
+### IAM Roles
+
+- Front-End EC2: Access to S3, CloudWatch Logs
+- Back-End EC2: Access to RDS, SSM, CloudWatch
+- All roles follow **least privilege** principle
 
 ---
 
 ## 🚀 Deployment Overview
 
-1. VPC with 2 Public and 2 Private Subnets
-2. ALB set up in front of EC2 Auto Scaling Group
-3. NAT Gateways deployed in each AZ for Private Subnets
-4. EC2 Instances deployed using Launch Template
-5. RDS (MySQL) deployed in Multi-AZ mode
-6. IAM roles created for EC2 to access CloudWatch
-7. CloudWatch Alarms + SNS notifications set up for CPU usage and health checks
+1. **VPC**: Custom VPC with 1 Public and 2 Private Subnets
+2. **ALB**: Internet-facing load balancer in Public Subnet
+3. **Auto Scaling**: Launch Templates for Front-End and Back-End EC2 Instances
+4. **NAT Gateway**: Allows private instances to access the internet
+5. **Amazon RDS**: MySQL with Multi-AZ enabled
+6. **CloudWatch + SNS**: Monitors metrics and sends alerts
 
 ---
 
 ## 📈 Monitoring & Alerts
 
-- CloudWatch monitors EC2 instances, ALB, and RDS metrics.
-- SNS sends email notifications on high CPU usage or instance failures.
+- **CloudWatch**: EC2, ALB, and RDS metrics monitored
+- **Alarms**: High CPU, Unhealthy Host Count
+- **SNS Topics**: Email alerts on critical metrics
 
 ---
 
-## 🧪 Testing
+## 🧪 Testing & Validation
 
-- Access web app via ALB DNS name.
-- Simulate load (using Apache Benchmark or similar).
-- Check that Auto Scaling Group launches/removes instances.
-- Validate DB connectivity and failover.
+- Access the application via the **ALB DNS name**
+- Validate load balancing and failover
+- Simulate CPU load and verify Auto Scaling triggers
+- Verify back-end EC2 → RDS connectivity
+- Ensure no direct internet access to private EC2 or RDS
 
 ---
-
 
 ## 👨‍🎓 Learning Outcomes
 
-- Build a secure, scalable, and highly available web infrastructure on AWS.
-- Configure Auto Scaling policies and Load Balancing.
-- Set up monitoring and alerts with CloudWatch & SNS.
-- Apply cost-optimization strategies with NAT Gateway and ASG.
+- Build a secure multi-tier architecture on AWS
+- Configure public/private subnets and routing
+- Use Auto Scaling and ALB for high availability
+- Implement CloudWatch monitoring and SNS alerts
+- Apply best practices for IAM and security groups
