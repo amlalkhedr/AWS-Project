@@ -3,7 +3,7 @@
 
 ---
 
-## 🧠 Project Description
+## 🧠 Project Description  
 
 This project showcases deploying a secure, scalable, and highly available web application on AWS. The architecture is optimized for performance and security by placing the front-end and back-end resources in separate private subnets, with only the Application Load Balancer and NAT Gateway residing in the public subnet. Amazon RDS (MySQL) is used for persistent data storage in a Multi-AZ deployment. Monitoring and alerting are handled through CloudWatch and SNS.
 
@@ -11,7 +11,7 @@ This project showcases deploying a secure, scalable, and highly available web ap
 
 ## 🏗️  Solution Architecture
 
-![Architecture Diagram](53228174-1870-4800-a990-842de569cb4a.png)
+![Architecture Diagram](images/8440fbf7-3220-487b-a88f-0dbca4806870.png)
 
 
 ### 🔁 Subnet Allocation
