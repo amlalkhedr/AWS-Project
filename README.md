@@ -11,7 +11,7 @@ This project showcases deploying a secure, scalable, and highly available web ap
 
 ## 🏗️  Solution Architecture
 
-![Architecture Diagram](images/8440fbf7-3220-487b-a88f-0dbca4806870.png)
+![Architecture Diagram](images/b2031939-4499-4412-8793-1439d8a376fe.png)
 
 
 ### 🔁 Subnet Allocation
