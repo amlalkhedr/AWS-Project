@@ -5,11 +5,14 @@
 
 ## 🧠 Project Description
 
-This project showcases the deployment of a secure, scalable, and highly available web application on AWS. The architecture is optimized for performance and security by placing the front-end and back-end resources in separate private subnets, with only the Application Load Balancer and NAT Gateway residing in the public subnet. Amazon RDS (MySQL) is used for persistent data storage in a Multi-AZ deployment. Monitoring and alerting are handled through CloudWatch and SNS.
+This project showcases deploying a secure, scalable, and highly available web application on AWS. The architecture is optimized for performance and security by placing the front-end and back-end resources in separate private subnets, with only the Application Load Balancer and NAT Gateway residing in the public subnet. Amazon RDS (MySQL) is used for persistent data storage in a Multi-AZ deployment. Monitoring and alerting are handled through CloudWatch and SNS.
 
 ---
 
 ## 🏗️  Solution Architecture
+
+![Architecture Diagram](53228174-1870-4800-a990-842de569cb4a.png)
+
 
 ### 🔁 Subnet Allocation
 
@@ -45,20 +48,9 @@ This project showcases the deployment of a secure, scalable, and highly availabl
 
 ### IAM Roles
 
-- Front-End EC2: Access to S3, CloudWatch Logs
+- Front-End EC2: Access to CloudWatch Logs
 - Back-End EC2: Access to RDS, SSM, CloudWatch
 - All roles follow **least privilege** principle
-
----
-
-## 🚀 Deployment Overview
-
-1. **VPC**: Custom VPC with 1 Public and 2 Private Subnets
-2. **ALB**: Internet-facing load balancer in Public Subnet
-3. **Auto Scaling**: Launch Templates for Front-End and Back-End EC2 Instances
-4. **NAT Gateway**: Allows private instances to access the internet
-5. **Amazon RDS**: MySQL with Multi-AZ enabled
-6. **CloudWatch + SNS**: Monitors metrics and sends alerts
 
 ---
 
