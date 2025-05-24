@@ -11,7 +11,9 @@ This project showcases deploying a secure, scalable, and highly available web ap
 
 ## 🏗️  Solution Architecture
 
-![Architecture Diagram](https://github.com/amlalkhedr/AWS-Project/raw/main/images/b2031939-4499-4412-8793-1439d8a376fe.png)
+![Diagram1 drawio](https://github.com/user-attachments/assets/460db572-2223-45f2-9c37-f8ea0cf9b592)
+
+
 
 
 ### 🔁 Subnet Allocation
