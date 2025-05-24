@@ -5,79 +5,127 @@
 
 ## 🧠 Project Description  
 
-This project showcases deploying a secure, scalable, and highly available web application on AWS. The architecture is optimized for performance and security by placing the front-end and back-end resources in separate private subnets, with only the Application Load Balancer and NAT Gateway residing in the public subnet. Amazon RDS (MySQL) is used for persistent data storage in a Multi-AZ deployment. Monitoring and alerting are handled through CloudWatch and SNS.
+This project showcases the deployment of a **secure**, **highly available**, and **scalable** multi-tier web application architecture on **AWS**.
+
+It utilizes **two Application Load Balancers (ALBs)** to ensure proper traffic distribution and logical tier separation:
+
+- 🌐 A **Web-tier ALB (external/public-facing)** to route client traffic to **Front-End EC2 instances** in private subnets.
+- 🔒 An **App-tier ALB (internal)** to securely forward requests from the **Front-End EC2s** to **Back-End EC2 instances**.
+
+The architecture spans **multiple Availability Zones** for fault tolerance. The **Front-End** tier is managed through an **Auto Scaling Group (ASG)**, while the **Back-End** connects to an **Amazon RDS (MySQL)** database deployed in **Multi-AZ** for high availability.
+
+Observability is achieved using **Amazon CloudWatch** for metrics and logs, and **Amazon SNS** for alert notifications. All resources are protected with properly scoped **IAM roles** and **security groups**, following the **principle of least privilege**.
 
 ---
 
-## 🏗️  Solution Architecture
+## 🏗️ Solution Architecture
 
-![Diagram1 drawio](https://github.com/user-attachments/assets/460db572-2223-45f2-9c37-f8ea0cf9b592)
-
-
-
-
-### 🔁 Subnet Allocation
-
-| Component                         | Subnet Type | Description                                                              |
-|----------------------------------|-------------|--------------------------------------------------------------------------|
-| **Application Load Balancer**    | Public      | Distributes traffic to private front-end EC2 instances                   |
-| **NAT Gateway**                  | Public      | Provides outbound internet access for private subnet resources           |
-| **Front-end EC2 Instances**      | Private     | Hosts the web application’s UI components                                |
-| **Back-end EC2 Instances**       | Private     | Executes server-side application logic                                   |
-| **Amazon RDS (MySQL)**           | Private     | Managed relational database deployed in Multi-AZ configuration           |
-
-### 📍 Network Configuration
-
-- **Region**: `eu-north-1 (Stockholm)`
-- **VPC CIDR**: `10.10.0.0/16`
-
-| Subnet Type | CIDR Range        | Availability Zone     |
-|-------------|-------------------|------------------------|
-| Public      | 10.10.1.0/24      | eu-north-1a            |
-| Private FE  | 10.10.101.0/24    | eu-north-1a            |
-| Private BE  | 10.10.102.0/24    | eu-north-1b            |
+![Architecture Diagram](https://github.com/user-attachments/assets/ee546355-9834-4b67-84ad-8147cfb32ead)
 
 ---
 
-## 🔐 Security Enhancements
+## 🧱 VPC & Subnet Design
 
-### Security Groups
+- **VPC CIDR:** `10.10.0.0/16`
+- **Region:** `eu-north-1 (Stockholm)`
+- Deployment across **two Availability Zones**: `eu-north-1a` and `eu-north-1b`
 
-- **ALB SG**: Allows HTTP (80) from the internet
-- **Front-End EC2 SG**: Accepts HTTP from ALB only
-- **Back-End EC2 SG**: Accepts traffic from Front-End EC2 SG on custom ports (e.g., 8080)
-- **RDS SG**: Accepts MySQL (3306) only from Back-End EC2 SG
+### Subnet Allocation
 
-### IAM Roles
-
-- Front-End EC2: Access to CloudWatch Logs
-- Back-End EC2: Access to RDS, SSM, CloudWatch
-- All roles follow **least privilege** principle
+| Subnet Type     | Name              | CIDR Block        | Availability Zone | Purpose                            |
+|-----------------|-------------------|-------------------|-------------------|------------------------------------|
+| **Public**      | Public-A          | 10.10.1.0/24      | eu-north-1a       | Web-tier ALB + NAT Gateway         |
+|                 | Public-B          | 10.10.2.0/24      | eu-north-1b       | Web-tier ALB + NAT Gateway         |
+| **Private FE**  | Private-FE-A      | 10.10.101.0/24    | eu-north-1a       | Front-End EC2 (ASG)                |
+|                 | Private-FE-B      | 10.10.102.0/24    | eu-north-1b       | Front-End EC2 (ASG)                |
+| **Private BE**  | Private-BE-A      | 10.10.201.0/24    | eu-north-1a       | Back-End EC2                       |
+|                 | Private-BE-B      | 10.10.202.0/24    | eu-north-1b       | Back-End EC2                       |
+| **Private RDS** | Private-RDS-A     | 10.10.251.0/24    | eu-north-1a       | RDS Primary                        |
+|                 | Private-RDS-B     | 10.10.252.0/24    | eu-north-1b       | RDS Standby (Multi-AZ)            |
 
 ---
 
-## 📈 Monitoring & Alerts
+## ⚙️ AWS Services Used
 
-- **CloudWatch**: EC2, ALB, and RDS metrics monitored
-- **Alarms**: High CPU, Unhealthy Host Count
-- **SNS Topics**: Email alerts on critical metrics
+### Networking
+- **Amazon VPC**, **Subnets**, **Route Tables**, **Internet Gateway**, **NAT Gateway**
+
+### Load Balancers
+- **Web-tier ALB (Public)**: Handles internet traffic to **Front-End EC2s**
+- **App-tier ALB (Internal)**: Routes internal traffic to **Back-End EC2s**
+
+### Compute
+- **Auto Scaling Group** for **Front-End EC2s**
+- **EC2 Instances** for both Front-End and Back-End layers
+
+### Database
+- **Amazon RDS (MySQL)** in **Multi-AZ** configuration
+
+### Security
+- Security Groups:
+  - **Web-tier ALB**: Allows HTTP/HTTPS from the internet
+  - **Front-End EC2**: Accepts traffic only from Web-tier ALB
+  - **App-tier ALB**: Accepts traffic only from Front-End EC2s
+  - **Back-End EC2**: Accepts traffic only from App-tier ALB
+  - **RDS**: Accepts traffic only from Back-End EC2
+- IAM Roles:
+  - **FE EC2**: Access to CloudWatch Logs
+  - **BE EC2**: Access to RDS, SSM, CloudWatch
+  - All roles use **least privilege**
+
+### Monitoring & Alerting
+- **Amazon CloudWatch**: Logs, metrics, alarms
+- **Amazon SNS**: Email notifications for threshold breaches
+
+---
+
+## 🔐 Security Architecture
+
+| Component         | Ingress Allowed From     | Port(s)         |
+|------------------|--------------------------|-----------------|
+| Web-tier ALB     | Internet (0.0.0.0/0)     | 80, 443         |
+| Front-End EC2    | Web-tier ALB only        | 80, 443         |
+| App-tier ALB     | Front-End EC2 SG         | 8080 (or custom)|
+| Back-End EC2     | App-tier ALB only        | 8080            |
+| Amazon RDS       | Back-End EC2 SG only     | 3306            |
 
 ---
 
 ## 🧪 Testing & Validation
 
-- Access the application via the **ALB DNS name**
-- Validate load balancing and failover
-- Simulate CPU load and verify Auto Scaling triggers
-- Verify back-end EC2 → RDS connectivity
-- Ensure no direct internet access to private EC2 or RDS
+- ✅ Application accessible via **Web-tier ALB DNS**
+- ✅ **Front-End EC2s** scale automatically under load
+- ✅ Internal routing from FE → App-tier ALB → BE verified
+- ✅ Back-End EC2 → RDS connectivity tested
+- ✅ Simulated AZ failover tested for RDS
+- ✅ No direct internet access to private subnets
+- ✅ NAT Gateway enables outbound access for updates
 
 ---
 
-## 👨‍🎓 Learning Outcomes
+## 🚀 Deployment Flow
 
-- Build a secure multi-tier architecture on AWS
-- Configure public/private subnets and routing
-- Use Auto Scaling and ALB for high availability
-- Implement CloudWatch monitoring and SNS alerts
-- Apply best practices for IAM and security groups
+1. Create the **VPC**, **subnets**, **IGW**, and **NAT Gateway**
+2. Set up **public and private subnets** across two AZs
+3. Launch:
+   - **Web-tier ALB** in public subnets
+   - **App-tier ALB** in private subnets
+4. Configure **Target Groups** and **Listeners**
+5. Deploy **Launch Templates** and **Auto Scaling Groups** for FE EC2s
+6. Launch BE EC2s and deploy app logic
+7. Set up **Amazon RDS MySQL** in Multi-AZ
+8. Configure **IAM roles**, **Security Groups**, and **Routing**
+9. Enable **CloudWatch alarms** and **SNS notifications**
+
+---
+
+## 📚 Learning Outcomes
+
+- Design scalable multi-tier applications on AWS
+- Separate tiers with external/internal ALBs
+- Secure resources with least-privilege IAM & SGs
+- Implement high availability using Auto Scaling & Multi-AZ RDS
+- Set up proactive monitoring and alerting mechanisms
+- Deploy real-world VPC architectures using best practices
+
+
